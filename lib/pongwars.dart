@@ -24,19 +24,32 @@ class _PongWarsPageState extends State<PongWarsPage> {
   _PongWarsPageState()
       : _grid = FieldGrid(),
         _balls = List.empty(growable: true) {
-    _balls.add(PongBall(0, 100, 5, 5, Team.blue));
-    _balls.add(PongBall(375, 300, -5, -5, Team.green));
+    _balls.add(PongBall(25, 100, 5.4, 5, Team.blue));
+    _balls.add(PongBall(375, 300, -5.2, -5.6, Team.green));
   }
 
   @override
   void initState() {
     super.initState();
 
-    timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+    timer = Timer.periodic(const Duration(milliseconds: 20), (timer) {
       setState(() {
         // _grid.randomizeTeams();
         for (var ball in _balls) {
           ball.move();
+          if (ball.posX < 0) {
+            ball.posX = 0;
+          }
+          if (ball.posY < 0) {
+            ball.posY = 0;
+          }
+          if (ball.posX > 399) {
+            ball.posX = 399;
+          }
+          if (ball.posY > 399) {
+            ball.posY = 399;
+          }
+
           tryBounceWalls(ball);
           tryHitBlocks(ball);
         }
@@ -101,24 +114,38 @@ class _PongWarsPageState extends State<PongWarsPage> {
   }
 
   void tryBounceWalls(PongBall ball) {
-    if (ball.posX < 0 || ball.posX > 390) {
+    if (ball.posX < 1 || ball.posX > 398) {
       ball.bounceX();
     }
-    if (ball.posY < 0 || ball.posY > 390) {
+    if (ball.posY < 1 || ball.posY > 398) {
       ball.bounceY();
     }
   }
 
   void tryHitBlocks(PongBall ball) {
     List<int> gridPos = widgetToGridPos((Offset(ball.posX, ball.posY)), 400);
-    Team team = _grid.teamAt(gridPos[0], gridPos[1]);
-    if (ball.team == team) {
-      if (ball.team == Team.blue) {
-        _grid.setTeamAt(gridPos[0], gridPos[1], Team.green);
+    int gridX = gridPos[0];
+    int gridY = gridPos[1];
+
+    Team blockTeam = _grid.teamAt(gridPos[0], gridPos[1]);
+
+    if (ball.team == blockTeam) {
+      int blockCenterX = gridX * 10 + 5;
+      int blockCenterY = gridY * 10 + 5;
+      int diffX = (ball.posX.toInt() - blockCenterX).abs();
+      int diffY = (ball.posY.toInt() - blockCenterY).abs();
+
+      if (diffX > diffY) {
+        ball.bounceX();
       } else {
-        _grid.setTeamAt(gridPos[0], gridPos[1], Team.blue);
+        ball.bounceY();
       }
-      ball.bounceX();
+
+      if (ball.team == Team.blue) {
+        _grid.setTeamAt(gridX, gridY, Team.green);
+      } else {
+        _grid.setTeamAt(gridX, gridY, Team.blue);
+      }
     }
   }
 }

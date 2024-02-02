@@ -1,4 +1,5 @@
 import 'package:coast_wars/grid.dart';
+import 'package:flutter/material.dart';
 
 class PongBall {
   double posX = 0;
@@ -17,6 +18,7 @@ class PongBall {
 
   PongBall bounceX() {
     spdX = -1 * spdX;
+    debugPrint("Bounce X!");
     return this;
   }
 
