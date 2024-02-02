@@ -82,8 +82,10 @@ class GridPainter extends CustomPainter {
             ? Colors.lightBlue
             : Colors.lightGreen;
         var circDim = 10 / 2;
-        canvas.drawCircle(
-            Offset(c * 10 + circDim, r * 10 + circDim), circDim, paint);
+        // canvas.drawCircle(
+        // Offset(c * 10 + circDim, r * 10 + circDim), circDim, paint);
+        canvas.drawRect(
+            Rect.fromLTWH(c * 10 + circDim, r * 10 + circDim, 10, 10), paint);
       }
     }
   }

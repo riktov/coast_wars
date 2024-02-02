@@ -19,11 +19,14 @@ class _PongWarsPageState extends State<PongWarsPage> {
   final FieldGrid _grid;
   final int _dim = 400;
   Timer? timer;
-  final PongBall _ball;
+  final List<PongBall> _balls;
 
   _PongWarsPageState()
       : _grid = FieldGrid(),
-        _ball = PongBall(0, 200, 5, 5);
+        _balls = List.empty(growable: true) {
+    _balls.add(PongBall(0, 100, 5, 5, Team.blue));
+    _balls.add(PongBall(375, 300, -5, -5, Team.green));
+  }
 
   @override
   void initState() {
@@ -32,8 +35,11 @@ class _PongWarsPageState extends State<PongWarsPage> {
     timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
       setState(() {
         // _grid.randomizeTeams();
-        _ball.move();
-        tryBounceWalls();
+        for (var ball in _balls) {
+          ball.move();
+          tryBounceWalls(ball);
+          tryHitBlocks(ball);
+        }
       });
     });
   }
@@ -74,7 +80,7 @@ class _PongWarsPageState extends State<PongWarsPage> {
                 child: GridWidget(
                   grid: _grid,
                   dim: _dim,
-                  painter: PongWarsPainter(_grid, _dim, _ball),
+                  painter: PongWarsPainter(_grid, _dim, _balls),
                 ),
               ),
             ])));
@@ -94,12 +100,25 @@ class _PongWarsPageState extends State<PongWarsPage> {
             width: _dim.toDouble(), child: const Column(children: [])));
   }
 
-  void tryBounceWalls() {
-    if (_ball.posX < 0 || _ball.posX > 400) {
-      _ball.spdX = -1 * _ball.spdX;
+  void tryBounceWalls(PongBall ball) {
+    if (ball.posX < 0 || ball.posX > 390) {
+      ball.bounceX();
     }
-    if (_ball.posY < 0 || _ball.posY > 400) {
-      _ball.spdY = -1 * _ball.spdY;
+    if (ball.posY < 0 || ball.posY > 390) {
+      ball.bounceY();
+    }
+  }
+
+  void tryHitBlocks(PongBall ball) {
+    List<int> gridPos = widgetToGridPos((Offset(ball.posX, ball.posY)), 400);
+    Team team = _grid.teamAt(gridPos[0], gridPos[1]);
+    if (ball.team == team) {
+      if (ball.team == Team.blue) {
+        _grid.setTeamAt(gridPos[0], gridPos[1], Team.green);
+      } else {
+        _grid.setTeamAt(gridPos[0], gridPos[1], Team.blue);
+      }
+      ball.bounceX();
     }
   }
 }
@@ -113,8 +132,8 @@ List<int> widgetToGridPos(Offset tapPos, int dim) {
 }
 
 class PongWarsPainter extends GridPainter {
-  PongBall ball;
-  PongWarsPainter(super.grid, super.dim, this.ball);
+  List<PongBall> balls;
+  PongWarsPainter(super.grid, super.dim, this.balls);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -122,8 +141,13 @@ class PongWarsPainter extends GridPainter {
 
     Paint paint = Paint()..style = PaintingStyle.fill;
 
-    paint.color = Colors.amber;
-
-    canvas.drawCircle(Offset(ball.posX, ball.posY), 5, paint);
+    for (var ball in balls) {
+      if (ball.team == Team.blue) {
+        paint.color = Colors.lightBlue;
+      } else {
+        paint.color = Colors.lightGreen;
+      }
+      canvas.drawCircle(Offset(ball.posX, ball.posY), 5, paint);
+    }
   }
 }
